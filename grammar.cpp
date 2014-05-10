@@ -480,15 +480,10 @@ int OperatorGrammar::table()
 
 void OperatorGrammar::print_stack(int j, int k, char *s)
 {
-	// 控制输出格式
-	int n = 0;
 	for (int i = j; i <= k; i++) {
 		std::cout << s[i];
-		n++;
 	}
-	for (; n < 15; n++) {
-		std::cout << " ";
-	}
+	std::cout << "\t\t";
 }
 
 int OperatorGrammar::deal()
@@ -508,43 +503,55 @@ int OperatorGrammar::deal()
 	std::cin >> sentence;
 	for (sl = 0; sentence[sl] != '\0'; sl++) {
 	}
-	
+
+	// 对输入串进行算符优先分析 
 	while ((a = sentence[i]) != '\0') {
+		// 当符号栈中深度为k的为终结符,另j = k
 		if (terminator(charstack[k]) != -1) {
 			j = k;	
 		}
+		// 不是终结符另j = k -1
 		else {
 			j = k - 1;
 		}
+		// x,y分别存储符号栈以及输入串在优先关系矩阵的行列下标
 		x = terminator(charstack[j]);
 		y = terminator(a);
+		// 当它们都是终结符
 		if (x != -1 && y != -1) {
+			// 当charstack[j] > a进行归约
 			if (priority_array[x][y] == '>') {
 				print_stack(1, k, charstack);
 				std::cout << a;
 				print_stack(i + 1, sl,sentence);
 				std::cout << "归约\n";
-
+				// 找到最左素短语
 				do {
 					q = charstack[j];
-					if (terminator(charstack[j - 1])) {
+					if (terminator(charstack[j - 1]) != -1) {
 						j--;
 					}
 					else {
-						j = j- 2;
+						j = j - 2;
 					}
-				} while(priority_array[x][y] != '<');
-				
+					x = terminator(charstack[j]);
+					y = terminator(q);
+				} while(priority_array[x][y] == '<' || priority_array[x][y] == '=');
+				// 把charstack[j + 1]...charstack[k]归约为某个非终结符,sn为该终结符的下标
 				int m, n, sn;
 				for (m = j + 1; m <= k; m++) {
-					for (sn = 0; N < tr; sn++) {
-						for (n = 1; t_grammar[sn][n] != '\0'; n++) {
-							if (terminator(charstack[m]) == -1 && terminator(t_grammar[sn][n]) == -1) {
-								if (terminator(charstack[m + 1]) != -1 && terminator(t_grammar[N][n + 1]) != -1 && charstack[m + 1] == t_grammar[N][n + 1]) {
-								charstack[j + 1] = t_grammar[sn][0];
-								break;
+					for (sn = 0; sn < tr; sn++) {
+						for (n = 3; t_grammar[sn][n] != '\0'; n++) {
+							// 归约句型第一个为终结符情况
+							if (terminator(charstack[m]) == -1 && charstack[m] == t_grammar[sn][n]) {
+								// 第二个为非终符情况
+								if (terminator(charstack[m + 1]) != -1 && charstack[m + 1] == t_grammar[sn][n + 1]) {
+									// 将此句子归约为对应的非终结符
+									charstack[j + 1] = t_grammar[sn][0];
+									break;
 								}
 							}
+							// 归约句型第一个为非终结符情况
 							else {
 								if (terminator(charstack[m]) != -1) {
 									if (charstack[m] == t_grammar[sn][n]) {
@@ -566,6 +573,7 @@ int OperatorGrammar::deal()
 					return 1;
 				}
 			}
+			// 移进情况,charstack[j] < a || charstack[j] = a
 			else {
 				if (priority_array[x][y] == '<' || priority_array[x][y] == '=') {
 					print_stack(1, k, charstack);
@@ -581,6 +589,16 @@ int OperatorGrammar::deal()
 					return 0;
 				}
 			}
+		}
+		// 当输入字符为非终结符移进
+		else if (y == -1) {
+			print_stack(1, k, charstack);
+			std::cout << a;
+			print_stack(i + 1, sl, sentence);
+			std::cout << "移进\n";
+			k++;
+			charstack[k] = a;
+			i++;
 		}
 	}
 	std::cout << "\nfalse";
