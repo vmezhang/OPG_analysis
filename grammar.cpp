@@ -499,11 +499,14 @@ int OperatorGrammar::deal()
 	// 存储终结符的下标
 	int x, y;
 
-	std::cout << "请输入测试句型:\n";
+	std::cout << "请输入测试句型:(以#结尾的形式)\n";
 	std::cin >> sentence;
 	for (sl = 0; sentence[sl] != '\0'; sl++) {
 	}
-
+	if (sentence[sl - 1] != '#') {
+		std::cout << "输入句型没有结束符号!\n";
+		return 0;
+	}
 	// 对输入串进行算符优先分析 
 	while ((a = sentence[i]) != '\0') {
 		// 当符号栈中深度为k的为终结符,另j = k
@@ -526,7 +529,7 @@ int OperatorGrammar::deal()
 				print_stack(i + 1, sl,sentence);
 				std::cout << "归约\n";
 				// 找到最左素短语
-				do {
+				while (priority_array[x][y] != '<' && priority_array[x][y] != '=' && j > 1) {
 					q = charstack[j];
 					if (terminator(charstack[j - 1]) != -1) {
 						j--;
@@ -536,32 +539,24 @@ int OperatorGrammar::deal()
 					}
 					x = terminator(charstack[j]);
 					y = terminator(q);
-				} while(priority_array[x][y] == '<' || priority_array[x][y] == '=');
+				}
+				if (j < 1) {
+					std::cout << "\nfalse";
+					return 0;
+				}
 				// 把charstack[j + 1]...charstack[k]归约为某个非终结符,sn为该终结符的下标
 				int m, n, sn;
-				for (m = j + 1; m <= k; m++) {
-					for (sn = 0; sn < tr; sn++) {
-						for (n = 3; t_grammar[sn][n] != '\0'; n++) {
-							// 归约句型第一个为终结符情况
-							if (terminator(charstack[m]) == -1 && charstack[m] == t_grammar[sn][n]) {
-								// 第二个为非终符情况
-								if (terminator(charstack[m + 1]) != -1 && charstack[m + 1] == t_grammar[sn][n + 1]) {
-									// 将此句子归约为对应的非终结符
-									charstack[j + 1] = t_grammar[sn][0];
-									break;
-								}
-							}
-							// 归约句型第一个为非终结符情况
-							else {
-								if (terminator(charstack[m]) != -1) {
-									if (charstack[m] == t_grammar[sn][n]) {
-										charstack[j + 1] = t_grammar[sn][0];
-										break;
-									}
-								}
-							}
+				for (sn = 0; sn < tr; sn++) {
+					for (m = j + 1, n = 3; m <= k && t_grammar[sn][n] != '\0'; n++, m++) {
+						if (charstack[m] != t_grammar[sn][n]) {
+							break;
 						}
 					}
+				}
+				m--;
+				// 如果符合产生式文法规则,将它归约为该非终结符
+				if (m == k) {
+					charstack[j + 1] = t_grammar[sn][0];
 				}
 				k = j + 1;
 				if (k == 2 && a == '#') {
