@@ -377,8 +377,8 @@ int OperatorGrammar::table()
 	t_grammar[tr][4] = grammar[0][0];
 	t_grammar[tr][5] = '#';
 	t_grammar[tr][6] = '\0';
-	tr++;
-	for (int i = 0; i < tr; i++) {
+	//tr++;
+	for (int i = 0; i < tr + 1; i++) {
 		for (int j = 3; t_grammar[i][j] != '\0'; j++) {
 			// 终结符与非终结符的下标参数
 			int t1 = -1, t2 = -1, t3 = -1, nt = -1;
@@ -460,7 +460,7 @@ int OperatorGrammar::table()
 	}
 	
 	// 将$->#E#去掉
-	tr--;
+	//tr--;
 
 	// 打印优先关系矩阵
 	std::cout << "\n算符优先关系矩阵：\n ";
@@ -507,6 +507,12 @@ int OperatorGrammar::deal()
 		std::cout << "输入句型没有结束符号!\n";
 		return 0;
 	}
+	// 输出归约规则
+	std::cout << "\n归约规则:\n";
+	for (int w = 0; w < tr; w++) {
+		std::cout << t_grammar[w] << std::endl;
+	}
+	std::cout << "算符优先分析该句型:\n";
 	// 对输入串进行算符优先分析 
 	while ((a = sentence[i]) != '\0') {
 		// 当符号栈中深度为k的为终结符,另j = k
@@ -541,22 +547,58 @@ int OperatorGrammar::deal()
 					y = terminator(q);
 				}
 				if (j < 1) {
-					std::cout << "\nfalse";
+					std::cout << "false\n";
 					return 0;
 				}
 				// 把charstack[j + 1]...charstack[k]归约为某个非终结符,sn为该终结符的下标
-				int m, n, sn;
-				for (sn = 0; sn < tr; sn++) {
-					for (m = j + 1, n = 3; m <= k && t_grammar[sn][n] != '\0'; n++, m++) {
-						if (charstack[m] != t_grammar[sn][n]) {
+				int m0, m, n, sn, sn0, s0, flag = 0;
+				for (sn0 = 0, m0 = j + 1; sn0 < tr; sn0++) {
+					for (sn = 0; sn < tr; sn++) {
+						for (m = j + 1, n = 3; m <= k && t_grammar[sn][n] != '\0'; n++, m++) {
+							if (charstack[m] != t_grammar[sn][n]) {
+								// 产生式字符不匹配标志为设置为0
+								flag = 0;
+								break;
+							}
+							// 字符匹配标志为设置为1
+							flag = 1;
+						}
+						// 不匹配
+						if (m <= k || t_grammar[sn][n] != '\0') {
+							flag = 0;
+						}
+						// 与产生式匹配
+						if (flag == 1) {
+							charstack[j + 1] = t_grammar[sn][0];
 							break;
 						}
 					}
+					// 不能一次性归约
+					if (flag == 0) {
+						// 先找到一个归约
+						for (s0 = 0; s0 < tr; s0++) {
+							if (charstack[m0] == t_grammar[s0][3] && t_grammar[s0][4] == '\0') {
+								std::cout << "该步需要间接归约,首先将" << charstack[m0] << "归约为" << t_grammar[s0][0] << "再完成之后的过程,即符号栈首先会变:";
+								charstack[m0] = t_grammar[s0][0];
+								print_stack(1, k, charstack);
+								std::cout << std::endl;
+								break;
+							}
+						}
+						// 无法归约则换到下一个字符
+						if (s0 == tr) {
+							m0++;
+						}
+					}
+					// 匹配成功
+					if (flag == 1) {
+						break;
+					}
 				}
-				m--;
-				// 如果符合产生式文法规则,将它归约为该非终结符
-				if (m == k) {
-					charstack[j + 1] = t_grammar[sn][0];
+				// 如果匹配失败则失败
+				if (flag == 0) {
+					std::cout << "false\n";
+					return 0;
 				}
 				k = j + 1;
 				if (k == 2 && a == '#') {
@@ -565,6 +607,7 @@ int OperatorGrammar::deal()
 					print_stack(i + 1, sl, sentence);
 					std::cout << "结束\n";
 					std::cout << "输入句型符合该文法定义!\n";
+
 					return 1;
 				}
 			}
@@ -580,7 +623,7 @@ int OperatorGrammar::deal()
 					i++;
 				}
 				else {
-					std::cout << "\nfalse";
+					std::cout << "false\n";
 					return 0;
 				}
 			}
@@ -596,6 +639,6 @@ int OperatorGrammar::deal()
 			i++;
 		}
 	}
-	std::cout << "\nfalse";
+	std::cout << "false\n";
 	return 0;
 }
