@@ -578,7 +578,7 @@ int OperatorGrammar::deal()
 						// 先找到一个归约
 						for (s0 = 0; s0 < tr; s0++) {
 							if (charstack[m0] == t_grammar[s0][3] && t_grammar[s0][4] == '\0') {
-								std::cout << "该步需要间接归约,首先将" << charstack[m0] << "归约为" << t_grammar[s0][0] << "再完成之后的过程,即符号栈首先会变:";
+								std::cout << "该步需要间接归约,首先将" << charstack[m0] << "归约为" << t_grammar[s0][0] << "再完成之后的过程,即符号栈首先会变成:";
 								charstack[m0] = t_grammar[s0][0];
 								print_stack(1, k, charstack);
 								std::cout << std::endl;
@@ -595,9 +595,8 @@ int OperatorGrammar::deal()
 						break;
 					}
 				}
-				// 如果匹配失败则失败
 				if (flag == 0) {
-					std::cout << "false\n";
+					std::cout << "false!\n";
 					return 0;
 				}
 				k = j + 1;

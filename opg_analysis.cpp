@@ -30,7 +30,12 @@ int main(int argc, char *argv[])
 	if(opg.table() == -1) {
 		return -1;
 	}
-	opg.deal();
+	std::cout << "需要进行句型分析请输入y\n";
+	char c;
+	std::cin >> c;
+	if (c == 'y') {
+		opg.deal();
+	}
 
 	return 0;
 }
